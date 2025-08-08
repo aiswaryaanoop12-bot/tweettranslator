@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tweet Translator</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; line-height: 1.6; }
+        h1 { text-align: center; color: #333; }
+        .container { background-color: #f4f4f9; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 100px; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; resize: vertical; font-size: 16px; }
+        label { font-weight: bold; color: #555; display: block; margin-bottom: 5px; }
+        select { padding: 10px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+        .result-box { margin-top: 20px; padding: 15px; border: 1px solid #b3d4fc; background-color: #eaf5ff; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Tweet Translator</h1>
+        <p>Paste your tweet below to get an instant translation.</p>
+        
+        <label for="tweetInput">Tweet Text:</label>
+        <textarea id="tweetInput" placeholder="Enter tweet text here..."></textarea>
+
+        <label>Translate from:</label>
+        <select id="sourceLang">
+            <option value="auto">Auto-detect</option>
+            {% for code, name in languages.items() %}
+                <option value="{{ code }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        
+        <label>Translate to:</label>
+        <select id="targetLang">
+            {% for code, name in languages.items() %}
+                <option value="{{ code }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        
+        <button id="translateBtn">Translate</button>
+
+        <div class="result-box">
+            <strong>Translated Text:</strong>
+            <p id="translatedOutput">Your translated tweet will appear here.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('translateBtn').addEventListener('click', async () => {
+            const tweetInput = document.getElementById('tweetInput').value;
+            const sourceLang = document.getElementById('sourceLang').value;
+            const targetLang = document.getElementById('targetLang').value;
+            const translatedOutput = document.getElementById('translatedOutput');
+
+            if (!tweetInput.trim()) {
+                translatedOutput.textContent = "Please enter a tweet to translate.";
+                return;
+            }
+
+            translatedOutput.textContent = "Translating...";
+
+            try {
+                const response = await fetch('/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: tweetInput,
+                        source: sourceLang,
+                        target: targetLang
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    translatedOutput.textContent = data.translated_text;
+                } else {
+                    translatedOutput.textContent = Error: ${data.error};
+                }
+            } catch (error) {
+                translatedOutput.textContent = An unexpected error occurred: ${error};
+            }
+        });
+    </script>
+</body>
+</html>
